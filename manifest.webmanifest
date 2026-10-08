@@ -1,0 +1,12 @@
+{
+  "name": "Daily Site Report",
+  "short_name": "Site Report",
+  "start_url": "./",
+  "scope": "./",
+  "display": "standalone",
+  "background_color": "#eef1f3",
+  "theme_color": "#f4c20d",
+  "icons": [
+    { "src": "icon.png", "sizes": "512x512", "type": "image/png", "purpose": "any" }
+  ]
+}

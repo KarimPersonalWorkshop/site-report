@@ -1,0 +1,591 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Daily Site Report</title>
+<meta name="theme-color" content="#f4c20d">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="Site Report">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="icon" type="image/png" href="icon.png">
+<link rel="apple-touch-icon" href="icon.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Barlow:wght@400;500;600&family=Barlow+Semi+Condensed:wght@600;700&family=JetBrains+Mono:wght@500;700&display=swap">
+<style>
+:root{
+  --bg:#eef1f3; --surface:#ffffff; --sunk:#e3e8eb; --line:#cfd6db;
+  --fg:#16212a; --muted:#56646e; --accent:#1d5f7a; --accent-fg:#ffffff;
+  --sign-bg:#f4c20d; --sign-fg:#111111;
+  --bad:#b3261e; --bad-bg:#fbe3e1; --ok:#1f7a4a;
+  --staff:#1d5f7a; --labour:#c08a00;
+  --f-display:"Barlow Semi Condensed","Arial Narrow",Arial,sans-serif;
+  --f-body:"Barlow",system-ui,-apple-system,"Segoe UI",sans-serif;
+  --f-mono:"JetBrains Mono",ui-monospace,Menlo,Consolas,monospace;
+  --r:6px; color-scheme:light;
+}
+@media (prefers-color-scheme: dark){:root{
+  --bg:#0f161b; --surface:#172129; --sunk:#0b1115; --line:#2a3842;
+  --fg:#e4eaee; --muted:#93a3ad; --accent:#6cb7d6; --accent-fg:#0b1115;
+  --bad:#ff8a80; --bad-bg:#3b1716; --ok:#5fcf93;
+  --staff:#6cb7d6; --labour:#e8b938; color-scheme:dark}}
+
+*{box-sizing:border-box}
+html{-webkit-text-size-adjust:100%}
+body{margin:0;padding-bottom:env(safe-area-inset-bottom,0px);background:var(--bg);color:var(--fg);font:16px/1.45 var(--f-body);padding-inline:16px;padding-block:0 48px}
+.wrap{max-width:760px;margin:0 auto}
+h1,h2,h3{font-family:var(--f-display);margin:0;text-wrap:balance;letter-spacing:.01em}
+.num{font-family:var(--f-mono);font-variant-numeric:tabular-nums}
+[hidden]{display:none!important}
+
+header{position:sticky;top:0;padding-top:calc(12px + env(safe-area-inset-top,0px))!important;z-index:5;background:var(--bg);margin-inline:-16px;padding:12px 16px 0;border-bottom:1px solid var(--line)}
+.brand{display:flex;align-items:center;gap:10px;flex-wrap:wrap;padding-bottom:10px}
+.sign{display:inline-flex;align-items:center;gap:6px;background:var(--sign-bg);color:var(--sign-fg);font:700 14px/1 var(--f-display);letter-spacing:.06em;text-transform:uppercase;padding:6px 9px;border-radius:3px;border:2px solid var(--sign-fg)}
+.sign.loc{background:var(--sign-fg);color:var(--sign-bg);border-color:var(--sign-bg)}
+.brand h1{font-size:22px}
+.brand .dept{color:var(--muted);font-size:13px;margin-left:auto}
+nav{display:flex;gap:4px}
+nav button{flex:1;font:600 15px var(--f-display);letter-spacing:.04em;text-transform:uppercase;background:none;border:0;border-bottom:3px solid transparent;color:var(--muted);padding:10px 4px;cursor:pointer}
+nav button[aria-selected="true"]{color:var(--fg);border-bottom-color:var(--sign-bg)}
+
+.section{display:grid;gap:12px;padding-block:20px;border-bottom:1px solid var(--line)}
+.section:last-of-type{border-bottom:0}
+.sec-head{display:flex;align-items:baseline;justify-content:space-between;gap:12px;flex-wrap:wrap}
+.sec-head h2{font-size:18px;text-transform:uppercase;letter-spacing:.05em}
+.hint{color:var(--muted);font-size:14px}
+.grid2{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:12px}
+label{display:grid;gap:4px;font-size:13px;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:.05em;min-width:0}
+input,select,textarea{font:16px var(--f-body);color:var(--fg);background:var(--surface);border:1px solid var(--line);border-radius:var(--r);padding:10px 11px;width:100%;min-width:0;text-transform:none;letter-spacing:0}
+textarea{min-height:76px;resize:vertical}
+input:focus-visible,select:focus-visible,textarea:focus-visible,button:focus-visible{outline:2px solid var(--accent);outline-offset:1px}
+.invalid{border-color:var(--bad)!important;background:var(--bad-bg)}
+.seg{display:flex;border:1px solid var(--line);border-radius:var(--r);overflow:hidden;background:var(--surface)}
+.seg button{flex:1;border:0;background:none;padding:10px;font:600 15px var(--f-body);color:var(--muted);cursor:pointer}
+.seg button[aria-pressed="true"]{background:var(--fg);color:var(--bg)}
+.lbl{font-size:13px;font-weight:600;text-transform:uppercase;letter-spacing:.05em;color:var(--muted)}
+
+.co{background:var(--surface);border:1px solid var(--line);border-radius:var(--r);display:grid}
+.co-head{display:flex;align-items:center;gap:10px;flex-wrap:wrap;padding:12px 14px;border-bottom:1px solid var(--line)}
+.co-head h3{font-size:19px}
+.co-head .icon-btn{margin-left:auto}
+.co.sub .co-head{background:var(--sunk)}
+.co-details{padding:12px 14px;border-bottom:1px solid var(--line)}
+.cnts{display:grid;grid-template-columns:1fr 1fr;gap:1px;background:var(--line);border-bottom:1px solid var(--line)}
+.cnt{background:var(--surface);padding:12px 14px;gap:6px}
+.cnt-k{display:flex;align-items:center;gap:8px;font:700 14px var(--f-display);letter-spacing:.07em;color:var(--fg)}
+.cnt-k::before{content:"";width:10px;height:10px;border-radius:2px;background:var(--staff)}
+.cnt.labour .cnt-k::before{background:var(--labour)}
+.big-num{font-size:24px;font-weight:700;padding:10px 12px}
+.co-foot{display:flex;justify-content:flex-end;gap:16px;padding:10px 14px;font-size:14px;color:var(--muted)}
+.co-foot b{color:var(--fg);font-family:var(--f-mono)}
+.icon-btn{width:36px;height:42px;border:1px solid var(--line);background:var(--sunk);color:var(--muted);border-radius:var(--r);cursor:pointer;font-size:20px;line-height:1;flex:none}
+.add{background:none;border:1px dashed var(--muted);color:var(--fg);border-radius:var(--r);padding:12px 16px;width:100%;font:600 16px var(--f-display);letter-spacing:.05em;text-transform:uppercase;cursor:pointer}
+.add.small{width:auto;font:600 15px var(--f-body);text-transform:none;letter-spacing:0;padding:8px 13px}
+.totals{display:grid;grid-template-columns:repeat(3,1fr);gap:1px;background:var(--line);border:1px solid var(--line);border-radius:var(--r);overflow:hidden}
+.totals div{background:var(--sunk);padding:10px 12px;display:grid;gap:2px}
+.totals span{font-size:12px;text-transform:uppercase;letter-spacing:.06em;color:var(--muted);font-weight:600}
+.totals b{font:700 22px var(--f-mono)}
+textarea.acts{min-height:180px;line-height:1.55}
+
+.btn{font:700 16px var(--f-display);letter-spacing:.06em;text-transform:uppercase;border:0;border-radius:var(--r);padding:14px 18px;cursor:pointer;background:var(--accent);color:var(--accent-fg);text-decoration:none;display:inline-block;text-align:center}
+.btn.ghost{background:none;color:var(--fg);border:1px solid var(--line)}
+.btn.small{font-size:13px;padding:8px 12px}
+.btn:disabled{opacity:.55;cursor:not-allowed}
+.submit-bar{display:grid;gap:10px;padding-block:20px}
+.notice{border-radius:var(--r);padding:12px 14px;font-size:15px;background:var(--bad-bg);color:var(--bad)}
+.done{display:grid;gap:14px;justify-items:start;padding-block:32px}
+.done h2{font-size:28px}
+.ref{font:700 20px var(--f-mono);background:var(--surface);border:1px solid var(--line);padding:8px 12px;border-radius:var(--r)}
+.foot{padding-block:8px 0;display:flex;justify-content:center}
+.link{background:none;border:0;color:var(--muted);text-decoration:underline;font:14px var(--f-body);cursor:pointer;padding:8px}
+
+/* gate */
+.gate{min-height:90vh;display:grid;place-items:center}
+.gate-card{width:100%;max-width:380px;display:grid;gap:14px;background:var(--surface);border:1px solid var(--line);border-radius:var(--r);padding:24px 20px}
+.gate-card h1{font-size:28px}
+
+/* dashboard */
+.datebar{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+.datebar input{width:auto}
+.kpis{display:grid;grid-template-columns:repeat(4,1fr);gap:1px;background:var(--line);border:1px solid var(--line);border-radius:var(--r);overflow:hidden}
+@media (max-width:560px){.kpis{grid-template-columns:repeat(2,1fr)}}
+.kpi{background:var(--surface);padding:12px 14px;display:grid;gap:2px}
+.kpi .k{font-size:12px;text-transform:uppercase;letter-spacing:.06em;color:var(--muted);font-weight:600}
+.kpi .v{font:700 30px var(--f-mono);font-variant-numeric:tabular-nums}
+.chips{display:flex;flex-wrap:wrap;gap:6px;align-items:center}
+.chip{font:600 13px var(--f-mono);padding:4px 8px;border-radius:3px;background:var(--bad-bg);color:var(--bad)}
+.tbl-wrap{overflow-x:auto;border:1px solid var(--line);border-radius:var(--r);background:var(--surface)}
+table{border-collapse:collapse;width:100%;font-size:15px}
+th,td{text-align:left;padding:9px 12px;border-bottom:1px solid var(--line);white-space:nowrap}
+th{font-size:12px;text-transform:uppercase;letter-spacing:.06em;color:var(--muted);background:var(--sunk)}
+td.n,th.n{text-align:right;font-family:var(--f-mono);font-variant-numeric:tabular-nums}
+td.wrap{white-space:normal;min-width:140px}
+tr:last-child td{border-bottom:0}
+tr.main td{font-weight:600}
+.rows{display:grid;gap:10px}
+details.rep{background:var(--surface);border:1px solid var(--line);border-radius:var(--r)}
+details.rep[open]{border-color:var(--muted)}
+details.rep summary{list-style:none;cursor:pointer;padding:12px 14px;display:grid;grid-template-columns:1fr auto;gap:4px 12px}
+details.rep summary::-webkit-details-marker{display:none}
+.rep-title{font-weight:600;min-width:0}
+.rep-sub{color:var(--muted);font-size:14px;min-width:0}
+.rep-n{grid-row:1/3;grid-column:2;align-self:center;text-align:right}
+.rep-n b{font:700 22px var(--f-mono);display:block}
+.rep-n span{font-size:11px;text-transform:uppercase;letter-spacing:.06em;color:var(--muted)}
+.rep-body{padding:0 14px 14px;display:grid;gap:12px}
+.rep-body h3{font-size:14px;text-transform:uppercase;letter-spacing:.06em;color:var(--muted)}
+.acts-text{margin:0;white-space:pre-wrap;overflow-wrap:anywhere}
+.empty{border:1px dashed var(--line);border-radius:var(--r);padding:28px 18px;text-align:center;color:var(--muted);display:grid;gap:6px}
+.empty strong{color:var(--fg);font-family:var(--f-display);font-size:18px}
+.toolbar{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <!-- ============ PASSWORD ============ -->
+  <section class="gate" id="gate" hidden>
+    <form class="gate-card" id="gateForm" novalidate>
+      <span class="sign" style="justify-self:start">HSSE</span>
+      <h1>Daily Site Report</h1>
+      <p class="hint" style="margin:0">Enter the site password to send your morning report. You only need to do this once on this phone.</p>
+      <label>Password<input type="password" id="gatePw" autocomplete="current-password"></label>
+      <div class="notice" id="gateMsg" hidden></div>
+      <button class="btn" type="submit" id="gateBtn">Continue</button>
+    </form>
+  </section>
+
+  <div id="app" hidden>
+    <header>
+      <div class="brand">
+        <span class="sign" id="hdrDate">—</span>
+        <h1>Daily Site Report</h1>
+        <span class="dept">to HSSE Department</span>
+      </div>
+      <nav role="tablist" id="tabs" hidden>
+        <button role="tab" id="tabForm" aria-selected="true">Morning report</button>
+        <button role="tab" id="tabDash" aria-selected="false">HSSE dashboard</button>
+      </nav>
+    </header>
+
+    <!-- ============ FORM ============ -->
+    <main id="viewForm">
+      <form id="form" novalidate>
+        <div class="section">
+          <div class="sec-head"><h2>Who &amp; where</h2><button type="button" class="add small" id="reuseBtn" hidden>Start from my last report</button></div>
+          <div class="grid2">
+            <label>Your name<input id="fName" autocomplete="name" placeholder="e.g. Ahmed Hassan"></label>
+          </div>
+          <div class="grid2">
+            <label>Project / package<select id="fProject"></select></label>
+            <label id="otherWrap" hidden>Project name / number<input id="fProjectOther" placeholder="e.g. SP3/INF/095-00"></label>
+            <label>Location / zone<input id="fLocation" placeholder="e.g. Stand G22, Taxiway M, Site office"></label>
+          </div>
+          <div class="grid2">
+            <label>Date<input type="date" id="fDate"></label>
+            <div style="display:grid;gap:4px"><span class="lbl">Shift</span>
+              <div class="seg" id="fShift"><button type="button" aria-pressed="true" data-v="Day">Day</button><button type="button" aria-pressed="false" data-v="Night">Night</button></div>
+            </div>
+          </div>
+        </div>
+
+        <div class="section">
+          <div class="sec-head"><h2>Manpower on site</h2><span class="hint">Staff and labour, per company</span></div>
+          <div class="rows" id="coBlocks" style="gap:14px"></div>
+          <button type="button" class="add" id="addSub">+ Add subcontractor</button>
+          <div class="totals">
+            <div><span>Staff</span><b id="tStaff">0</b></div>
+            <div><span>Labour</span><b id="tLabour">0</b></div>
+            <div><span>Total</span><b id="tAll">0</b></div>
+          </div>
+        </div>
+
+        <div class="section">
+          <div class="sec-head"><h2>Today's activities</h2><span class="hint">Write everything in one box</span></div>
+          <textarea id="fActs" class="acts" aria-label="Today's activities" placeholder="e.g.&#10;Excavation for drainage chamber DC-04&#10;Concrete pouring at Stand G22 foundation&#10;Cable laying along Taxiway M"></textarea>
+        </div>
+
+        <div class="section">
+          <label>Notes for HSSE (optional)<textarea id="fNotes" placeholder="Visitors expected, equipment arriving, concerns…"></textarea></label>
+        </div>
+
+        <div class="submit-bar">
+          <div class="notice" id="formMsg" hidden></div>
+          <button class="btn" type="submit" id="submitBtn">Send to HSSE</button>
+        </div>
+      </form>
+
+      <div class="done" id="done" hidden>
+        <span class="sign">Received</span>
+        <h2>Report sent to HSSE</h2>
+        <div class="ref" id="doneRef"></div>
+        <p class="hint" id="doneSummary" style="margin:0"></p>
+        <button class="btn ghost" type="button" id="newBtn">Send another report</button>
+      </div>
+    </main>
+
+    <!-- ============ DASHBOARD ============ -->
+    <main id="viewDash" hidden>
+      <div class="section">
+        <div class="datebar">
+          <button class="btn ghost small" type="button" id="dPrev" aria-label="Previous day">◀</button>
+          <input type="date" id="dDate" aria-label="Report date">
+          <button class="btn ghost small" type="button" id="dNext" aria-label="Next day">▶</button>
+          <button class="btn ghost small" type="button" id="dToday">Today</button>
+          <button class="btn ghost small" type="button" id="dRefresh">Refresh</button>
+          <span class="hint" id="dLive"></span>
+        </div>
+        <div class="kpis">
+          <div class="kpi"><span class="k">Reports received</span><span class="v" id="kReports">0</span></div>
+          <div class="kpi"><span class="k">Staff</span><span class="v" id="kStaff">0</span></div>
+          <div class="kpi"><span class="k">Labour</span><span class="v" id="kLabour">0</span></div>
+          <div class="kpi"><span class="k">Total manpower</span><span class="v" id="kMan">0</span></div>
+        </div>
+        <div id="missWrap" class="chips"></div>
+      </div>
+      <div id="dashBody"></div>
+    </main>
+
+    <div class="foot"><button class="link" type="button" id="logout">Sign out of this phone</button></div>
+  </div>
+</div>
+
+<script>
+(function(){
+"use strict";
+const $ = id => document.getElementById(id);
+const el = (tag, props, kids) => { const e=document.createElement(tag); Object.assign(e, props||{}); [].concat(kids||[]).forEach(k => { if (k!=null) e.append(k); }); return e; };
+const store = { get(k){ try{ return JSON.parse(localStorage.getItem(k)); }catch(e){ return null; } }, set(k,v){ try{ localStorage.setItem(k, JSON.stringify(v)); }catch(e){} }, del(k){ try{ localStorage.removeItem(k); }catch(e){} } };
+/* ============================================================
+   PASTE YOUR APPS SCRIPT WEB APP LINK BETWEEN THE QUOTES BELOW
+   (it ends in /exec). Never put passwords in this file.
+   ============================================================ */
+const API_URL = "https://script.google.com/macros/s/AKfycbzYlu45wizWp4lLdAz2VJ1GxbFszh-0Ekta8OejrTkVz3AA7fQyOWApIjnTY9b3a2hj/exec";
+
+/* Calls the Apps Script backend without sending anyone's Google login,
+   so it works no matter which Google accounts the phone is signed into. */
+const run = async (action, ...args) => {
+  const res = await fetch(API_URL, {
+    method: "POST", credentials: "omit", redirect: "follow",
+    headers: { "Content-Type": "text/plain;charset=utf-8" },
+    body: JSON.stringify({ action, args })
+  });
+  if (!res.ok) throw new Error("HTTP " + res.status);
+  return res.json();
+};
+const shiftDate = (iso, d) => { const t=new Date(iso+"T12:00:00Z"); t.setUTCDate(t.getUTCDate()+d); return t.toISOString().slice(0,10); };
+const prettyDate = iso => new Date(iso+"T12:00:00Z").toLocaleDateString("en-GB",{weekday:"short",day:"numeric",month:"short",timeZone:"UTC"});
+const dubaiTime = iso => { try { return new Date(iso).toLocaleTimeString("en-GB",{hour:"2-digit",minute:"2-digit",timeZone:"Asia/Dubai"}); } catch(e){ return ""; } };
+
+let cfg = null, password = "", today = "";
+
+/* ================= LOGIN ================= */
+function showGate(msg){
+  $("app").hidden = true; $("gate").hidden = false;
+  $("gateMsg").hidden = !msg; $("gateMsg").textContent = msg || "";
+  $("gatePw").value = ""; setTimeout(() => $("gatePw").focus(), 50);
+}
+async function tryLogin(pw, silent){
+  $("gateBtn").disabled = true; $("gateBtn").textContent = "Checking…";
+  try {
+    const res = await run("login", pw);
+    if (!res || !res.ok){ store.del("dsr.pw"); showGate(silent ? "" : "That password isn't right. Ask HSSE for the current site password."); return; }
+    password = pw; store.set("dsr.pw", pw); cfg = res; today = res.today;
+    startApp();
+  } catch(e){
+    showGate("Couldn't reach the server. Check your connection and try again.");
+  } finally { $("gateBtn").disabled = false; $("gateBtn").textContent = "Continue"; }
+}
+$("gateForm").addEventListener("submit", e => { e.preventDefault(); const pw = $("gatePw").value.trim(); if (pw) tryLogin(pw, false); });
+$("logout").onclick = () => { store.del("dsr.pw"); password = ""; showGate(""); };
+
+let started = false;
+function startApp(){
+  $("gate").hidden = true; $("app").hidden = false;
+  $("hdrDate").textContent = prettyDate(today);
+  $("tabs").hidden = cfg.role !== "hsse";
+  if (!started){ started = true; buildProjects(); resetForm(); }
+  showTab("form");
+}
+
+/* ================= TABS ================= */
+function showTab(t){
+  $("tabForm").setAttribute("aria-selected", t==="form");
+  $("tabDash").setAttribute("aria-selected", t==="dash");
+  $("viewForm").hidden = t!=="form";
+  $("viewDash").hidden = t!=="dash";
+  if (t==="dash") loadDash();
+}
+$("tabForm").onclick = () => showTab("form");
+$("tabDash").onclick = () => showTab("dash");
+
+/* ================= FORM ================= */
+const pSel = $("fProject");
+function buildProjects(){
+  pSel.replaceChildren(el("option",{value:"",textContent:"Select project…"}));
+  cfg.projects.forEach(p => pSel.append(el("option",{value:p[0],textContent:p[0]+" — "+p[1]})));
+  pSel.append(el("option",{value:"__other",textContent:"Others"}));
+}
+pSel.onchange = () => { $("otherWrap").hidden = pSel.value !== "__other"; };
+
+let shift = "Day";
+function setShift(v){ shift=v; for (const x of $("fShift").children) x.setAttribute("aria-pressed", x.dataset.v===v); }
+$("fShift").addEventListener("click", e => { const b = e.target.closest("button"); if (b) setShift(b.dataset.v); });
+
+function countBox(kind, v){
+  const input = el("input",{type:"number",min:"0",inputMode:"numeric",placeholder:"0",value: v ? String(v) : "",className:"num big-num"});
+  input.oninput = updateTotals;
+  return { wrap: el("label",{className:"cnt "+kind},[el("span",{className:"cnt-k",textContent: kind==="staff" ? "Staff" : "Labour"}), input]), input, get: () => parseInt(input.value,10)||0 };
+}
+function coBlock(d, isMain){
+  d = d || {};
+  const staff = countBox("staff", d.staff), labour = countBox("labour", d.labour);
+  const foot = el("div",{className:"co-foot"});
+  const block = el("div",{className:"co"+(isMain?"":" sub")});
+  let nameInput = null;
+  if (isMain){
+    block.append(el("div",{className:"co-head"},[el("span",{className:"sign",textContent:"Main contractor"}), el("h3",{textContent:cfg.main})]));
+  } else {
+    const del = el("button",{type:"button",className:"icon-btn",textContent:"×",ariaLabel:"Remove subcontractor"});
+    del.onclick = () => { block.remove(); updateTotals(); };
+    nameInput = el("input",{placeholder:"e.g. Gulf Scaffolding LLC",value:d.name||""});
+    block.append(el("div",{className:"co-head"},[el("span",{className:"sign loc",textContent:"Subcontractor"}), del]),
+                 el("div",{className:"co-details"},[el("label",{},["Company name",nameInput])]));
+  }
+  block.append(el("div",{className:"cnts"},[staff.wrap, labour.wrap]), foot);
+  block._isMain = isMain; block._name = nameInput; block._staff = staff; block._labour = labour; block._foot = foot;
+  block._get = () => ({ name: isMain ? cfg.main : nameInput.value.trim(), main: !!isMain, staff: staff.get(), labour: labour.get() });
+  return block;
+}
+$("addSub").onclick = () => { const b = coBlock({}, false); $("coBlocks").append(b); b._name.focus(); updateTotals(); };
+
+function updateTotals(){
+  let S=0, L=0;
+  for (const b of $("coBlocks").children){
+    const s = b._staff.get(), l = b._labour.get();
+    b._foot.replaceChildren(el("span",{},["Staff ",el("b",{textContent:s})]), el("span",{},["Labour ",el("b",{textContent:l})]), el("span",{},["Total ",el("b",{textContent:s+l})]));
+    S+=s; L+=l;
+  }
+  $("tStaff").textContent=S; $("tLabour").textContent=L; $("tAll").textContent=S+L;
+}
+
+function resetForm(prefill){
+  $("form").reset(); $("formMsg").hidden = true; setShift("Day");
+  $("coBlocks").replaceChildren();
+  const me = store.get("dsr.me") || {};
+  $("fName").value = me.name || "";
+  $("fDate").value = today;
+  const src = prefill || me;
+  if (src.project){ const known = cfg.projects.some(p=>p[0]===src.project); pSel.value = known ? src.project : "__other"; $("fProjectOther").value = known ? "" : src.project; }
+  $("fLocation").value = src.location || "";
+  pSel.onchange();
+  const cos = (prefill && prefill.companies) || [];
+  $("coBlocks").append(coBlock(cos.find(c=>c.main), true));
+  cos.filter(c=>!c.main).forEach(c => $("coBlocks").append(coBlock(c, false)));
+  $("fActs").value = (prefill && prefill.activities) || "";
+  updateTotals();
+  $("reuseBtn").hidden = !store.get("dsr.last") || !!prefill;
+}
+$("reuseBtn").onclick = () => resetForm(store.get("dsr.last"));
+
+function showMsg(text){ const m=$("formMsg"); m.textContent=text; m.hidden=false; m.scrollIntoView({block:"nearest",behavior:"smooth"}); }
+
+$("form").addEventListener("submit", async e => {
+  e.preventDefault();
+  document.querySelectorAll(".invalid").forEach(x=>x.classList.remove("invalid"));
+  const bad = [];
+  const need = (input, ok) => { if(!ok){ input.classList.add("invalid"); bad.push(input); } };
+  const name=$("fName").value.trim(), location=$("fLocation").value.trim(), activities=$("fActs").value.trim();
+  const project = pSel.value==="__other" ? $("fProjectOther").value.trim() : pSel.value;
+  need($("fName"), name); need(pSel.value==="__other" ? $("fProjectOther") : pSel, project);
+  need($("fLocation"), location); need($("fDate"), $("fDate").value);
+
+  const companies = [];
+  for (const b of $("coBlocks").children){
+    const c = b._get();
+    if (!b._isMain){ need(b._name, c.name); if (!c.staff && !c.labour){ need(b._staff.input,false); need(b._labour.input,false); } }
+    companies.push(c);
+  }
+  const S = companies.reduce((s,c)=>s+c.staff,0), L = companies.reduce((s,c)=>s+c.labour,0);
+  if (!S && !L){ const m=$("coBlocks").firstElementChild; need(m._staff.input,false); need(m._labour.input,false); }
+  need($("fActs"), activities);
+  if (bad.length){ showMsg("Fill in the highlighted fields. Each subcontractor needs a name and at least one staff or labour number."); bad[0].focus(); return; }
+
+  const report = { date:$("fDate").value, shift, name, project, location, companies, activities, notes:$("fNotes").value.trim() };
+  store.set("dsr.me", {name, project, location});
+  store.set("dsr.last", {project, location, companies, activities});
+
+  const btn=$("submitBtn"); btn.disabled = true; btn.textContent = "Sending…";
+  try{
+    const res = await run("submitReport", password, report);
+    if (!res || !res.ok){
+      if (res && res.code==="auth"){ store.del("dsr.pw"); showGate("The site password has changed. Enter the new one — your report is still filled in."); started = true; return; }
+      showMsg(res && res.message ? res.message : "Couldn't send. Try again."); return;
+    }
+    $("doneRef").textContent = res.ref;
+    $("doneSummary").textContent = `${project} · ${location} · ${res.staffTotal} staff, ${res.labourTotal} labour${res.subs?` (incl. ${res.subs} subcontractor${res.subs>1?"s":""})`:""}`;
+    $("form").hidden = true; $("done").hidden = false; window.scrollTo(0,0);
+  }catch(err){
+    showMsg("Couldn't send. Check your connection and tap Send again — your entries are still here.");
+  }finally{ btn.disabled=false; btn.textContent="Send to HSSE"; }
+});
+$("newBtn").onclick = () => { $("done").hidden = true; $("form").hidden = false; resetForm(); };
+
+/* ================= DASHBOARD ================= */
+let dashDate = "", reports = [], loading = false, timer = null;
+const setDate = d => { dashDate = d; $("dDate").value = d; loadDash(); };
+$("dPrev").onclick = () => setDate(shiftDate(dashDate,-1));
+$("dNext").onclick = () => setDate(shiftDate(dashDate, 1));
+$("dToday").onclick = () => setDate(today);
+$("dRefresh").onclick = () => loadDash();
+$("dDate").onchange = () => $("dDate").value && setDate($("dDate").value);
+
+async function loadDash(){
+  if (!dashDate){ dashDate = today; $("dDate").value = today; }
+  if (loading) return; loading = true;
+  const wanted = dashDate;
+  $("dLive").textContent = "Loading…";
+  try{
+    const res = await run("getReports", password, wanted);
+    if (!res || !res.ok){ if (res && res.code==="auth"){ store.del("dsr.pw"); showGate("Enter the HSSE password again."); } return; }
+    if (wanted !== dashDate) return;
+    reports = res.reports; today = res.today || today;
+    $("dLive").textContent = "Updated " + new Date().toLocaleTimeString("en-GB",{hour:"2-digit",minute:"2-digit"});
+    renderDash();
+  }catch(e){ $("dLive").textContent = "Couldn't load reports. Tap Refresh."; }
+  finally{ loading = false; if (wanted !== dashDate) loadDash(); }
+  clearTimeout(timer);
+  timer = setTimeout(() => { if (!$("viewDash").hidden && !document.hidden) loadDash(); }, 60000);
+}
+
+const th = (t,n) => el("th",{className:n?"n":"",textContent:t});
+const tdN = v => el("td",{className:"n",textContent:v});
+
+/* ---------- combine reports that share a project ---------- */
+const coKey = n => String(n||"").trim().toLowerCase().replace(/\s+/g," ");
+const projName = code => { const p = cfg.projects.find(p=>p[0]===code); return p ? p[1] : "Other project"; };
+function groupByProject(list){
+  const map = new Map();
+  list.forEach(r => {
+    const g = map.get(r.project) || {code:r.project, reports:[], staff:0, labour:0, locs:[], cos:new Map()};
+    g.reports.push(r); g.staff += r.staffTotal; g.labour += r.labourTotal;
+    if (!g.locs.includes(r.location)) g.locs.push(r.location);
+    r.companies.forEach(c => {
+      const k = c.main ? "__main" : coKey(c.name);
+      const x = g.cos.get(k) || {name:c.name, main:c.main, staff:0, labour:0};
+      x.staff += c.staff; x.labour += c.labour; g.cos.set(k, x);
+    });
+    map.set(r.project, g);
+  });
+  const groups = [...map.values()];
+  groups.forEach(g => {
+    g.reports.sort((a,b) => a.submittedAt.localeCompare(b.submittedAt));
+    g.companies = [...g.cos.values()].sort((a,b) => (b.main-a.main) || ((b.staff+b.labour)-(a.staff+a.labour)));
+  });
+  return groups.sort((a,b) => (b.staff+b.labour)-(a.staff+a.labour));
+}
+
+function renderDash(){
+  const S = reports.reduce((s,r)=>s+r.staffTotal,0), L = reports.reduce((s,r)=>s+r.labourTotal,0);
+  const reported = new Set(reports.map(r=>r.project));
+  const missing = cfg.projects.filter(p=>!reported.has(p[0]));
+  $("kReports").textContent = reports.length; $("kStaff").textContent = S; $("kLabour").textContent = L; $("kMan").textContent = S+L;
+  $("missWrap").replaceChildren(...(missing.length && reports.length ? [el("span",{className:"hint",textContent:"No report yet:"}), ...missing.map(p=>el("span",{className:"chip",textContent:p[0],title:p[1]}))] : []));
+
+  const body = $("dashBody"); body.replaceChildren();
+  const sheetBtn = cfg.sheetUrl ? el("a",{className:"btn ghost small",href:cfg.sheetUrl,target:"_blank",rel:"noopener",textContent:"Open Google Sheet"}) : null;
+  if (!reports.length){
+    body.append(el("div",{className:"section"},[el("div",{className:"empty"},[
+      el("strong",{textContent:`No reports for ${prettyDate(dashDate)} yet`}),
+      el("span",{textContent:"Reports appear here once supervisors tap Send. This page refreshes every minute."})]), sheetBtn]));
+    return;
+  }
+
+  const groups = groupByProject(reports);
+
+  const projTbl = el("table",{},[
+    el("thead",{},el("tr",{},[th("Project"),th("Locations"),th("Reports",1),th("Staff",1),th("Labour",1),th("Total",1)])),
+    el("tbody",{}, groups.map(g => el("tr",{},[
+      el("td",{className:"num",textContent:g.code}), el("td",{className:"wrap",textContent:g.locs.join(", ")}),
+      tdN(g.reports.length), tdN(g.staff), tdN(g.labour), tdN(g.staff+g.labour)])))]);
+
+  const byCo = new Map();
+  groups.forEach(g => g.companies.forEach(c => { const k = c.main ? "__main" : coKey(c.name);
+    const x = byCo.get(k) || {name:c.name, main:c.main, projects:new Set(), s:0, l:0}; x.projects.add(g.code); x.s+=c.staff; x.l+=c.labour; byCo.set(k,x); }));
+  const coTbl = el("table",{},[
+    el("thead",{},el("tr",{},[th("Company"),th("Type"),th("Projects"),th("Staff",1),th("Labour",1),th("Total",1)])),
+    el("tbody",{},[...byCo.values()].sort((a,b)=>(b.main-a.main)||((b.s+b.l)-(a.s+a.l))).map(x => el("tr",{className:x.main?"main":""},[
+      el("td",{className:"wrap",textContent:x.name}), el("td",{textContent:x.main?"Main contractor":"Subcontractor"}),
+      el("td",{className:"wrap num",textContent:[...x.projects].join(", ")}), tdN(x.s), tdN(x.l), tdN(x.s+x.l)])))]);
+
+  const copyBtn = el("button",{type:"button",className:"btn ghost small",textContent:"Copy summary"});
+  const msg = el("span",{className:"hint"});
+  copyBtn.onclick = () => { const t = summaryText(groups); const ok = () => msg.textContent = "Summary copied — paste it into email or WhatsApp.";
+    try { navigator.clipboard.writeText(t).then(ok, () => fallbackCopy(t, msg)); } catch(e){ fallbackCopy(t, msg); } };
+
+  body.append(
+    el("div",{className:"section"},[el("div",{className:"sec-head"},[el("h2",{textContent:"By project"}), el("div",{className:"toolbar"},[copyBtn, sheetBtn])]), msg, el("div",{className:"tbl-wrap"},projTbl)]),
+    el("div",{className:"section"},[el("div",{className:"sec-head"},[el("h2",{textContent:"By company"}), el("span",{className:"hint",textContent:`${[...byCo.values()].filter(x=>!x.main).length} subcontractors on site`})]), el("div",{className:"tbl-wrap"},coTbl)]),
+    el("div",{className:"section"},[el("div",{className:"sec-head"},[el("h2",{textContent:"Project reports"}), el("span",{className:"hint",textContent:"Reports for the same project are combined"})]), el("div",{className:"rows"}, groups.map(projectCard))])
+  );
+}
+
+function projectCard(g){
+  const n = g.reports.length;
+  const d = el("details",{className:"rep"});
+  d.append(el("summary",{},[
+    el("span",{className:"rep-title"},[el("span",{className:"num",textContent:g.code}), " · " + projName(g.code)]),
+    el("span",{className:"rep-sub",textContent:`${n} report${n>1?"s":""} · ${g.locs.join(", ")} · ${g.staff} staff, ${g.labour} labour`}),
+    el("span",{className:"rep-n"},[el("b",{textContent:g.staff+g.labour}), el("span",{textContent:"people"})])]));
+  const kids = [
+    el("h3",{textContent: n>1 ? "Manpower (combined)" : "Manpower"}),
+    el("div",{className:"tbl-wrap"}, el("table",{},[
+      el("thead",{},el("tr",{},[th("Company"),th("Type"),th("Staff",1),th("Labour",1),th("Total",1)])),
+      el("tbody",{}, g.companies.map(c => el("tr",{className:c.main?"main":""},[
+        el("td",{className:"wrap",textContent:c.name}), el("td",{textContent:c.main?"Main contractor":"Subcontractor"}),
+        tdN(c.staff), tdN(c.labour), tdN(c.staff+c.labour)])))])),
+    el("h3",{textContent: n>1 ? "Activities (all reports)" : "Activities"})
+  ];
+  g.reports.forEach(r => {
+    if (n>1) kids.push(el("p",{className:"hint",style:"margin:0",textContent:`${r.name} · ${r.location} · ${r.shift} shift · sent ${dubaiTime(r.submittedAt)}`}));
+    kids.push(el("p",{className:"acts-text",textContent:r.activities}));
+  });
+  const notes = g.reports.filter(r => r.notes);
+  if (notes.length){
+    kids.push(el("h3",{textContent:"Notes"}));
+    notes.forEach(r => kids.push(el("p",{className:"acts-text",textContent: (n>1 ? r.name + ": " : "") + r.notes})));
+  }
+  kids.push(el("p",{className:"hint",style:"margin:0",textContent:"Sent by: " + g.reports.map(r => `${r.name} (${dubaiTime(r.submittedAt)}, ${r.ref})`).join(" · ")}));
+  d.append(el("div",{className:"rep-body"}, kids));
+  return d;
+}
+
+function summaryText(groups){
+  const S = reports.reduce((s,r)=>s+r.staffTotal,0), L = reports.reduce((s,r)=>s+r.labourTotal,0);
+  const out = [`Daily site report – ${prettyDate(dashDate)}`, `${groups.length} projects · ${S} staff · ${L} labour · ${S+L} total`, ""];
+  groups.forEach(g => {
+    out.push(`${g.code} – ${projName(g.code)}`);
+    out.push(`Location: ${g.locs.join(", ")} · Manpower: ${g.staff} staff, ${g.labour} labour`);
+    g.companies.forEach(c => out.push(`  ${c.main?"ANCC":c.name}: ${c.staff} staff, ${c.labour} labour`));
+    out.push("Activities:");
+    g.reports.forEach(r => r.activities.split("\n").filter(s=>s.trim()).forEach(s => out.push(`  - ${s.trim().replace(/^[-•*]\s*/,"")}`)));
+    out.push("");
+  });
+  return out.join("\n").trim();
+}
+function fallbackCopy(t, msg){
+  const ta = el("textarea",{value:t,readOnly:true}); ta.style.minHeight="160px";
+  msg.replaceChildren("Copy the text below:", ta); ta.focus(); ta.select();
+}
+
+/* ================= START ================= */
+const saved = store.get("dsr.pw");
+if (API_URL.indexOf("/exec") === -1){
+  showGate("Setup not finished: the Apps Script link hasn't been pasted into index.html yet.");
+  $("gateBtn").disabled = true;
+} else if (saved){ $("gate").hidden = false; tryLogin(saved, true); } else showGate("");
+})();
+</script>
+</body>
+</html>
